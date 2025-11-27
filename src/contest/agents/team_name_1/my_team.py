@@ -214,7 +214,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             'nearest_ghost': 2, # Prefer being far from ghosts
             'ghost_threat': -1000, # Strong penalty for being close to a ghost
             'stop': -100, # Discourage stopping
-            'reverse': -2, # Discourage reversing
+            'reverse': -100, # Discourage reversing
             'low_time_home': -5,  # Encourage returning home when time is low
         }
 
