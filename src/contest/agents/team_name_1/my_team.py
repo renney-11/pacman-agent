@@ -140,7 +140,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
   This is an improved offensive agent that seeks food, returns home when carrying enough food,
   and avoids ghosts.
   """
-  
+    
     FOOD_RETURN_THRESHOLD = 4  # Number of food to carry before returning home
 
     def get_features(self, game_state, action):
@@ -198,6 +198,8 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
         # Encourage returning home when time is low
         time_left = game_state.data.timeleft if hasattr(game_state.data, 'timeleft') else None
         if time_left is not None and time_left < 100 and my_state.num_carrying > 0:
+            global FOOD_RETURN_THRESHOLD
+            FOOD_RETURN_THRESHOLD = 1
             home_dist = self.get_maze_distance(my_pos, self.start)
             features['low_time_home'] = home_dist
         else:
@@ -214,7 +216,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             'nearest_ghost': 2, # Prefer being far from ghosts
             'ghost_threat': -1000, # Strong penalty for being close to a ghost
             'stop': -100, # Discourage stopping
-            'reverse': -100, # Discourage reversing
+            'reverse': -40, # Discourage reversing
             'low_time_home': -5,  # Encourage returning home when time is low
         }
 
@@ -248,9 +250,9 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             # Distance to nearest food
             if len(food_list) > 0:
                 min_food_dist = min([self.get_maze_distance(my_pos, food) for food in food_list])
-                features['food_distance'] = min_food_dist # Encourage patrolling food
+                features['food_distance'] = min_food_dist
             else:
-                features['food_distance'] = 0 # No food to defend
+                features['food_distance'] = 0
 
         # Discourage stopping and reversing
         if action == Directions.STOP:
@@ -258,6 +260,17 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         rev = Directions.REVERSE[game_state.get_agent_state(self.index).configuration.direction]
         if action == rev:
             features['reverse'] = 1
+        
+        # Calculate center x-coordinate
+        width = game_state.data.layout.width
+        center_x = width // 2
+
+        # Encourage staying near the center line
+        center_positions = [(center_x, y) for y in range(game_state.data.layout.height)
+                            if not game_state.has_wall(center_x, y)]
+
+        center_dist = min(self.get_maze_distance(my_pos, m) for m in center_positions)
+        features['center_distance'] = 0.01*((center_dist)**2.7)
 
         return features
 
@@ -268,6 +281,7 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             'invader_distance': -10, # Chase invaders
             'food_distance': -1, # Patrol food when no invaders
             'stop': -100, # Discourage stopping
-            'reverse': -2 # Discourage reversing
+            'reverse': -2, # Discourage reversing
+            'center_distance': -1 # Encourage staying near the center
         }
         
