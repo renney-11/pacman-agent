@@ -270,7 +270,13 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         # Encourage staying near the center line
         center_position = (center_x, center_y)
 
-        center_dist = self.get_maze_distance(my_pos, center_position)
+        center_positions = [(center_x, y) for y in range(game_state.data.layout.height)
+                            if not game_state.has_wall(center_x, y)]
+
+        if not game_state.has_wall(center_x, center_y):
+            center_dist = self.get_maze_distance(my_pos, center_position)
+        else: center_dist = min(self.get_maze_distance(my_pos, m) for m in center_positions)
+
         features['center_distance'] = 0.01*((center_dist)**2.7)
 
         return features
