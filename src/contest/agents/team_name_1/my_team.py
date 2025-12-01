@@ -216,7 +216,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             'nearest_ghost': 2, # Prefer being far from ghosts
             'ghost_threat': -1000, # Strong penalty for being close to a ghost
             'stop': -100, # Discourage stopping
-            'reverse': -40, # Discourage reversing
+            'reverse': -100, # Discourage reversing
             'low_time_home': -5,  # Encourage returning home when time is low
         }
 
@@ -263,13 +263,14 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         
         # Calculate center x-coordinate
         width = game_state.data.layout.width
+        height = game_state.data.layout.height
         center_x = width // 2
+        center_y = height // 2
 
         # Encourage staying near the center line
-        center_positions = [(center_x, y) for y in range(game_state.data.layout.height)
-                            if not game_state.has_wall(center_x, y)]
+        center_position = (center_x, center_y)
 
-        center_dist = min(self.get_maze_distance(my_pos, m) for m in center_positions)
+        center_dist = self.get_maze_distance(my_pos, center_position)
         features['center_distance'] = 0.01*((center_dist)**2.7)
 
         return features
